@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"go-event/internal/participant"
-	"go-event/internal/user/repositories"
+	"go-event/internal/user"
 	"go-event/pkg/config"
 	"log"
 
@@ -22,7 +22,7 @@ type Service interface {
 type service struct {
 	repo            Repository
 	participantRepo participant.Repository
-	userRepo        repositories.UserRepository
+	userRepo        user.Repository
 	notifService    NotificationService
 	cfg             *config.Config
 }
@@ -222,7 +222,7 @@ func (s *service) UpdateEvent(userID uint,eventID uint, req *UpdateEventRequest)
 	return response, nil
 }
 
-func NewService(repo Repository, participantRepo participant.Repository, userRepo repositories.UserRepository, notifService NotificationService, cfg *config.Config) Service {
+func NewService(repo Repository, participantRepo participant.Repository, userRepo user.Repository, notifService NotificationService, cfg *config.Config) Service {
 	return &service{
 		repo:            repo,
 		participantRepo: participantRepo,

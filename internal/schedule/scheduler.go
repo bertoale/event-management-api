@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"go-event/internal/notification"
 	"go-event/internal/participant"
-	"go-event/internal/user/repositories"
+	"go-event/internal/user"
 	"log"
 	"time"
 
@@ -15,7 +15,7 @@ type Scheduler struct {
 	repo            Repository
 	notifService    notification.Service
 	participantRepo participant.Repository
-	userRepo        repositories.UserRepository
+	userRepo        user.Repository
 	cron            *gocron.Scheduler
 }
 
@@ -23,7 +23,7 @@ func NewScheduler(
 	repo Repository,
 	notifService notification.Service,
 	participantRepo participant.Repository,
-	userRepo repositories.UserRepository,
+	userRepo user.Repository,
 ) *Scheduler {
 	return &Scheduler{
 		repo:            repo,

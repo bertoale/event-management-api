@@ -8,10 +8,6 @@ import (
 	"go-event/internal/participant"
 	"go-event/internal/schedule"
 	"go-event/internal/user"
-	"go-event/internal/user/controllers"
-	"go-event/internal/user/repositories"
-	"go-event/internal/user/routes"
-	"go-event/internal/user/services"
 
 	"go-event/pkg/config"
 	"go-event/pkg/middlewares"
@@ -66,20 +62,11 @@ func main() {
 			"version": "1.0.0",
 			"timestamp": fiber.Map{},
 		})
-	})
-	// Initialize email service (dibutuhkan untuk semua service yang kirim email)
+	})	// Initialize email service (dibutuhkan untuk semua service yang kirim email)
 	emailService := email.NewService(cfg)
 	
-	// Initialize dependencies for auth routes
-	authRepo := repositories.NewAuthRepository(db)
-	authService := services.NewAuthService(authRepo, emailService, cfg)
-	authController := controllers.NewAuthController(authService, cfg)
-
-	// Initialize dependencies for user routes
-	userRepo := repositories.NewUserRepository(db)
-	userService := services.NewUserService(userRepo, cfg)
-	userController := controllers.NewUserController(userService, cfg)
 	// Initialize repositories
+	userRepo := user.NewRepository(db)
 	eventRepo := event.Newrepository(db)
 	participantRepo := participant.Newrepository(db)
 	scheduleRepo := schedule.NewRepository(db)
@@ -92,6 +79,10 @@ func main() {
 	notificationService := notification.NewService(notificationRepo, eventRepo, emailService, cfg)
 	notificationController := notification.NewController(notificationService, cfg)
 	
+	// Initialize services
+	userService := user.NewService(userRepo, emailService, cfg)
+	userController := user.NewController(userService, cfg)
+	
 	// Initialize event service (dengan dependency notification untuk update/cancel)
 	eventService := event.NewService(eventRepo, participantRepo, userRepo, notificationService, cfg)
 	eventController := event.NewController(eventService, cfg)
@@ -103,15 +94,13 @@ func main() {
 	// Initialize schedule service
 	scheduleService := schedule.NewService(scheduleRepo, eventRepo, cfg)
 	scheduleController := schedule.NewController(scheduleService, cfg)
-
 	// Initialize scheduler with all dependencies
 	scheduler := schedule.NewScheduler(scheduleRepo, notificationService, participantRepo, userRepo)
 	scheduler.Start()
 	defer scheduler.Stop()
 
 	// Use vertical layer routes
-	routes.SetupAuthRoutes(app, authController)
-	routes.SetupUserRoutes(app, userController, cfg)
+	user.SetupUserRoutes(app, userController, cfg)
 	event.SetupOrganizerEventRoutes(app, eventController, cfg)
 	participant.SetupParticipantRoute(app, participantController, cfg)
 	schedule.SetupScheduleRoutes(app, scheduleController, cfg)

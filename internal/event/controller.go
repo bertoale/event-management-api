@@ -1,7 +1,6 @@
 package event
 
 import (
-	"go-event/internal/user"
 	"go-event/pkg/config"
 	"strconv"
 
@@ -20,8 +19,7 @@ func NewController(service Service, cfg *config.Config ) *Controller {
 }
 
 func (ctrl *Controller) CreateEvent(c *fiber.Ctx) error {
-	user := c.Locals("user").(*user.User)
-
+	userID := c.Locals("userID").(uint)
 
 	var req CreateEventRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -30,7 +28,7 @@ func (ctrl *Controller) CreateEvent(c *fiber.Ctx) error {
 		})
 	}
 
-	eventResponse, err := ctrl.service.CreateEvent(user.ID, &req)
+	eventResponse, err := ctrl.service.CreateEvent(userID, &req)
 
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -45,8 +43,8 @@ func (ctrl *Controller) CreateEvent(c *fiber.Ctx) error {
 }
 
 func (ctrl *Controller) GetAllEventByUserID(c *fiber.Ctx) error {
-	user := c.Locals("user").(*user.User)
-	events, err := ctrl.service.GetEventByUserID(user.ID)
+	userID := c.Locals("userID").(uint)
+	events, err := ctrl.service.GetEventByUserID(userID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "failed to retrieve events",
@@ -61,7 +59,7 @@ func (ctrl *Controller) GetAllEventByUserID(c *fiber.Ctx) error {
 }
 
 func (ctrl *Controller) UpdateEvent(c *fiber.Ctx) error {
-	user := c.Locals("user").(*user.User)
+	userID := c.Locals("userID").(uint)
 	id := c.Params("id")
 
 	eventId, err := strconv.ParseUint(id, 10, 32)
@@ -78,7 +76,7 @@ func (ctrl *Controller) UpdateEvent(c *fiber.Ctx) error {
 		})
 	}
 
-	updatedEvent, err := ctrl.service.UpdateEvent(user.ID, uint(eventId), &req)
+	updatedEvent, err := ctrl.service.UpdateEvent(userID, uint(eventId), &req)
 	if err != nil {
 		statusCode := fiber.StatusInternalServerError
 		if err.Error() == "event not found" {
@@ -101,7 +99,7 @@ func (ctrl *Controller) UpdateEvent(c *fiber.Ctx) error {
 }
 
 func (ctrl *Controller) DeleteEvent(c *fiber.Ctx) error {
-	user := c.Locals("user").(*user.User)
+	userID := c.Locals("userID").(uint)
 	id := c.Params("id")
 
 	eventId, err := strconv.ParseUint(id, 10, 32)
@@ -110,7 +108,7 @@ func (ctrl *Controller) DeleteEvent(c *fiber.Ctx) error {
 			"error": "invalid event id",
 		})
 	}
-	err = ctrl.service.DeleteEvent(user.ID, uint(eventId))
+	err = ctrl.service.DeleteEvent(userID, uint(eventId))
 	if err != nil {
 		statusCode := fiber.StatusInternalServerError
 		if err.Error() == "event not found" {

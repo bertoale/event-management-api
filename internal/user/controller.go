@@ -1,31 +1,89 @@
-package controllers
+package user
 
 import (
-	"go-event/internal/user"
-	"go-event/internal/user/services"
 	"go-event/pkg/config"
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-type UserController struct {
-	userService services.UserService
+type Controller struct {
+	service Service
 	cfg         *config.Config
 }
 
-func NewUserController(userService services.UserService, cfg *config.Config) *UserController {
-	return &UserController{
-		userService: userService,
-		cfg:         cfg,
+func NewController(authService Service, cfg *config.Config) *Controller {
+	return &Controller{
+		service: authService,
+		cfg: cfg,
 	}
 }
 
-// GetProfile - Get current user profile
-func (ctrl *UserController) GetProfile(c *fiber.Ctx) error {
-	user := c.Locals("user").(*user.User)
 
-	userResponse, err := ctrl.userService.GetProfile(user.ID)
+func (ctrl *Controller) Login(c *fiber.Ctx) error {
+	var req LoginRequest
+
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+
+	}
+
+	token, userResponse, err := ctrl.service.Login(req)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	c.Cookie(&fiber.Cookie{
+		Name:     "token",
+		Value:    token,
+		Expires:  time.Now().Add(7 * 24 * time.Hour),
+		HTTPOnly: true,
+		Secure:   ctrl.cfg.NodeEnv == "production",
+		SameSite: "Lax",
+	})
+
+	return c.JSON(fiber.Map{
+		"message": "Login successfully.",
+		"token":   token,
+		"user":    userResponse,
+	})
+}
+
+func (ctrl *Controller) Register(c *fiber.Ctx) error {
+	var req RegisterRequest
+
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid request body",
+		})
+	}
+
+	userResponse, err := ctrl.service.Register(req)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"message": "User registered successfully.",
+		"user":    userResponse,
+	})
+}
+
+
+
+
+// GetProfile - Get current user profile
+func (ctrl *Controller) GetProfile(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+
+	userResponse, err := ctrl.service.GetProfile(userID)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"message": err.Error(),
@@ -39,8 +97,8 @@ func (ctrl *UserController) GetProfile(c *fiber.Ctx) error {
 }
 
 // GetAllUsers - Get all users (Admin only)
-func (ctrl *UserController) GetAllUsers(c *fiber.Ctx) error {
-	users, err := ctrl.userService.GetAllUsers()
+func (ctrl *Controller) GetAllUsers(c *fiber.Ctx) error {
+	users, err := ctrl.service.GetAllUsers()
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": err.Error(),
@@ -54,7 +112,7 @@ func (ctrl *UserController) GetAllUsers(c *fiber.Ctx) error {
 }
 
 // GetUserByID - Get user by ID (Admin only)
-func (ctrl *UserController) GetUserByID(c *fiber.Ctx) error {
+func (ctrl *Controller) GetUserByID(c *fiber.Ctx) error {
 	id := c.Params("id")
 
 	userID, err := strconv.ParseUint(id, 10, 32)
@@ -64,7 +122,7 @@ func (ctrl *UserController) GetUserByID(c *fiber.Ctx) error {
 		})
 	}
 
-	userResponse, err := ctrl.userService.GetUserByID(uint(userID))
+	userResponse, err := ctrl.service.GetUserByID(uint(userID))
 	if err != nil {
 		statusCode := fiber.StatusInternalServerError
 		if err.Error() == "user not found" {
@@ -82,16 +140,16 @@ func (ctrl *UserController) GetUserByID(c *fiber.Ctx) error {
 }
 
 // UpdateProfile - Update current user profile
-func (ctrl *UserController) UpdateProfile(c *fiber.Ctx) error {
-	users := c.Locals("user").(*user.User)
-	var req user.UpdateUserRequest
+func (ctrl *Controller) UpdateProfile(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+	var req UpdateUserRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "invalid request body",
 		})
 	}
 
-	updatedUser, err := ctrl.userService.UpdateProfile(users.ID, &req)
+	updatedUser, err := ctrl.service.UpdateProfile(userID, &req)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": err.Error(),
@@ -105,7 +163,7 @@ func (ctrl *UserController) UpdateProfile(c *fiber.Ctx) error {
 }
 
 // DeleteUser - Delete user by ID (Admin only)
-func (ctrl *UserController) DeleteUser(c *fiber.Ctx) error {
+func (ctrl *Controller) DeleteUser(c *fiber.Ctx) error {
 	id := c.Params("id")
 
 	userID, err := strconv.ParseUint(id, 10, 32)
@@ -115,7 +173,7 @@ func (ctrl *UserController) DeleteUser(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := ctrl.userService.DeleteUser(uint(userID)); err != nil {
+	if err := ctrl.service.DeleteUser(uint(userID)); err != nil {
 		statusCode := fiber.StatusInternalServerError
 		if err.Error() == "user not found" {
 			statusCode = fiber.StatusNotFound
@@ -131,10 +189,10 @@ func (ctrl *UserController) DeleteUser(c *fiber.Ctx) error {
 }
 
 // GetUsersByRole - Get users by role (Admin only)
-func (ctrl *UserController) GetUsersByRole(c *fiber.Ctx) error {
+func (ctrl *Controller) GetUsersByRole(c *fiber.Ctx) error {
 	role := c.Params("role")
 
-	users, err := ctrl.userService.GetUsersByRole(role)
+	users, err := ctrl.service.GetUsersByRole(role)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": err.Error(),
@@ -148,16 +206,16 @@ func (ctrl *UserController) GetUsersByRole(c *fiber.Ctx) error {
 }
 
 // ChangePassword - Change current user password
-func (ctrl *UserController) ChangePassword(c *fiber.Ctx) error {
-	users := c.Locals("user").(*user.User)
-	var req user.ChangePasswordRequest
+func (ctrl *Controller) ChangePassword(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+	var req ChangePasswordRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "invalid request body",
 		})
 	}
 
-	if err := ctrl.userService.ChangePassword(users.ID, &req); err != nil {
+	if err := ctrl.service.ChangePassword(userID, &req); err != nil {
 		statusCode := fiber.StatusBadRequest
 		if err.Error() == "invalid old password" {
 			statusCode = fiber.StatusUnauthorized

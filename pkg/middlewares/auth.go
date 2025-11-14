@@ -3,7 +3,6 @@ package middlewares
 import (
 	"strings"
 
-	"go-event/internal/user"
 	"go-event/pkg/config"
 
 	"github.com/gofiber/fiber/v2"
@@ -12,9 +11,17 @@ import (
 
 // Claims adalah struct untuk JWT payload
 type Claims struct {
-	ID uint `json:"id"` // User ID dari database
-	Role user.RoleType `json:"role"`
+	ID   uint   `json:"id"`   // User ID dari database
+	Role string `json:"role"` // Role as string to avoid import cycle
 	jwt.RegisteredClaims
+}
+
+// UserLocals is a simplified user struct for context
+type UserLocals struct {
+	ID    uint
+	Name  string
+	Email string
+	Role  string
 }
 
 // ✅ Authenticate Middleware
@@ -47,17 +54,23 @@ func Authenticate(cfg *config.Config) fiber.Handler {
 				"message": "Token tidak valid atau kadaluarsa.",
 			})
 		}
-
 		// Ambil user dari database
-		var user user.User
-		if err := config.DB.First(&user, claims.ID).Error; err != nil {
+		// We need to query the user to verify they exist
+		// But we don't import user package to avoid cycle
+		// Instead we check if user exists in DB directly
+		db := config.GetDB()
+		
+		// Query to check if user exists
+		var count int64
+		if err := db.Table("users").Where("id = ?", claims.ID).Count(&count).Error; err != nil || count == 0 {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"message": "User tidak ditemukan.",
 			})
 		}
 
-		// Simpan user di context
-		c.Locals("user", &user)
+		// Store user ID and role in context
+		c.Locals("userID", claims.ID)
+		c.Locals("userRole", claims.Role)
 
 		// Lanjut ke middleware berikutnya
 		return c.Next()
@@ -68,9 +81,9 @@ func Authenticate(cfg *config.Config) fiber.Handler {
 // Mengecek apakah user memiliki salah satu role yang diizinkan
 func Authorize(roles ...string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// Ambil user dari context (harus lewat Authenticate dulu)
-		user, ok := c.Locals("user").(*user.User)
-		if !ok || user == nil {
+		// Ambil user role dari context (harus lewat Authenticate dulu)
+		userRole, ok := c.Locals("userRole").(string)
+		if !ok {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"message": "User belum terautentikasi.",
 			})
@@ -83,7 +96,7 @@ func Authorize(roles ...string) fiber.Handler {
 
 		// Cek apakah user.role ada di daftar roles yang diizinkan
 		for _, role := range roles {
-			if string(user.Role) == role {
+			if userRole == role {
 				return c.Next()
 			}
 		}

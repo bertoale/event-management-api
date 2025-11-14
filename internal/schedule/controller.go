@@ -1,7 +1,6 @@
 package schedule
 
 import (
-	"go-event/internal/user"
 	"go-event/pkg/config"
 	"strconv"
 	"strings"
@@ -101,7 +100,7 @@ func (ctrl *Controller) GetSchedules(c *fiber.Ctx) error {
 }
 
 func (ctrl *Controller) DeleteSchedule(c *fiber.Ctx) error {
-	user := c.Locals("user").(*user.User)
+	userID := c.Locals("userID").(uint)
 	id := c.Params("id")
 
 	scheduleID, err := strconv.ParseUint(id, 10, 32)
@@ -111,7 +110,7 @@ func (ctrl *Controller) DeleteSchedule(c *fiber.Ctx) error {
 		})
 	}
 
-	err = ctrl.service.DeleteSchedule(uint(scheduleID), user.ID)
+	err = ctrl.service.DeleteSchedule(uint(scheduleID), userID)
 	if err != nil {
 		statusCode := fiber.StatusInternalServerError
 		if err.Error() == "schedule not found" {

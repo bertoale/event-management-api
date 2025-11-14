@@ -2,7 +2,6 @@
 package notification
 
 import (
-	"go-event/internal/user"
 	"go-event/pkg/config"
 	"strconv"
 	"strings"
@@ -60,9 +59,9 @@ func (ctrl *Controller) CreateNotification(c *fiber.Ctx) error {
 }
 
 func (ctrl *Controller) GetNotifications(c *fiber.Ctx) error {
-	user := c.Locals("user").(*user.User)
+	userID := c.Locals("userID").(uint)
 
-	notifications, err := ctrl.service.GetNotificationsByUserID(user.ID)
+	notifications, err := ctrl.service.GetNotificationsByUserID(userID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": err.Error(),
@@ -76,7 +75,7 @@ func (ctrl *Controller) GetNotifications(c *fiber.Ctx) error {
 }
 
 func (ctrl *Controller) MarkAsRead(c *fiber.Ctx) error {
-	user := c.Locals("user").(*user.User)
+	userID := c.Locals("userID").(uint)
 	id := c.Params("id")
 
 	notificationID, err := strconv.ParseUint(id, 10, 32)
@@ -86,7 +85,7 @@ func (ctrl *Controller) MarkAsRead(c *fiber.Ctx) error {
 		})
 	}
 
-	err = ctrl.service.MarkNotificationAsRead(uint(notificationID), user.ID)
+	err = ctrl.service.MarkNotificationAsRead(uint(notificationID), userID)
 	if err != nil {
 		statusCode := fiber.StatusInternalServerError
 		if err.Error() == "notification not found or unauthorized" {
@@ -104,7 +103,7 @@ func (ctrl *Controller) MarkAsRead(c *fiber.Ctx) error {
 }
 
 func (ctrl *Controller) DeleteNotification(c *fiber.Ctx) error {
-	user := c.Locals("user").(*user.User)
+	userID := c.Locals("userID").(uint)
 	id := c.Params("id")
 
 	notificationID, err := strconv.ParseUint(id, 10, 32)
@@ -114,7 +113,7 @@ func (ctrl *Controller) DeleteNotification(c *fiber.Ctx) error {
 		})
 	}
 
-	err = ctrl.service.DeleteNotification(uint(notificationID), user.ID)
+	err = ctrl.service.DeleteNotification(uint(notificationID), userID)
 	if err != nil {
 		statusCode := fiber.StatusInternalServerError
 		if err.Error() == "notification not found or unauthorized" {

@@ -3,6 +3,7 @@ package email
 import (
 	"fmt"
 	"go-event/pkg/config"
+	"log"
 
 	"github.com/mailjet/mailjet-apiv3-go/v4"
 )
@@ -44,9 +45,10 @@ func (s *service) SendEmail(to, toName, subject, htmlBody, textBody string) erro
 	messages := mailjet.MessagesV31{Info: messagesInfo}
 	_, err := s.client.SendMailV31(&messages)
 	if err != nil {
+		log.Printf("[EMAIL] Failed to send email to %s: %v", to, err)
 		return fmt.Errorf("failed to send email: %w", err)
 	}
-
+	log.Printf("[EMAIL] Email sent to %s with subject '%s'", to, subject)
 	return nil
 }
 

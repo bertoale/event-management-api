@@ -21,7 +21,8 @@ type Participant struct {
 	Status    StatusType	`json:"status"`
 	CreatedAt time.Time 	`json:"created_at"`
 
-	// Event event.Event `json:"event" gorm:"foreignKey:EventID"` // Removed to avoid circular import
+	// Removed direct references to avoid import cycle
+	// Event event.Event `json:"event" gorm:"foreignKey:EventID"`
 	User  user.User   `json:"user" gorm:"foreignKey:UserID"`
 }
 

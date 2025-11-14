@@ -37,6 +37,7 @@ GoEvent is a backend event management system built with Go, designed to support 
 
 ## Main API Endpoints
 
+- `/api/auth/` : Auth
 - `/api/events` : Event management
 - `/api/participants` : Participant registration & management
 - `/api/schedule` : Event scheduling

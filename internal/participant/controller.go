@@ -1,7 +1,6 @@
 package participant
 
 import (
-	"go-event/internal/user"
 	"go-event/pkg/config"
 	"strconv"
 
@@ -21,7 +20,7 @@ func NewController(service Service, cfg config.Config) *Controller {
 }
 
 func (ctrl *Controller) RegisterParticipant(c *fiber.Ctx) error {
-	user := c.Locals("user").(*user.User)
+	userID := c.Locals("userID").(uint)
 	id := c.Params("id")
 
 	eventID, err := strconv.ParseUint(id, 10, 32)
@@ -33,7 +32,7 @@ func (ctrl *Controller) RegisterParticipant(c *fiber.Ctx) error {
 	
 	req := RegisterParticipantRequest{
 		EventID: uint(eventID),
-		UserID:  user.ID,
+		UserID:  userID,
 	}
 
 	participant, err := ctrl.service.RegisterParticipant(&req)
@@ -59,7 +58,7 @@ func (ctrl *Controller) RegisterParticipant(c *fiber.Ctx) error {
 }
 
 func (ctrl *Controller) CancelParticipant(c *fiber.Ctx) error {
-	user := c.Locals("user").(*user.User)
+	userID := c.Locals("userID").(uint)
 	id := c.Params("id")
 	eventID, err := strconv.ParseUint(id, 10, 32)
 
@@ -68,7 +67,7 @@ func (ctrl *Controller) CancelParticipant(c *fiber.Ctx) error {
 			"message": "invalid event ID",
 		})
 	}
-	err = ctrl.service.CancelParticipant(uint(eventID), user.ID)
+	err = ctrl.service.CancelParticipant(uint(eventID), userID)
 	if err != nil {
 		statusCode := fiber.StatusBadRequest
 		if err.Error() == "participant not found" {
@@ -89,7 +88,7 @@ func (ctrl *Controller) CancelParticipant(c *fiber.Ctx) error {
 }
 
 func (ctrl *Controller) GetParticipant(c *fiber.Ctx) error {
-	users := c.Locals("user").(*user.User)
+	userRole := c.Locals("userRole").(string)
 	id := c.Params("id")
 	eventID, err := strconv.ParseUint(id, 10, 32)
 
@@ -99,7 +98,7 @@ func (ctrl *Controller) GetParticipant(c *fiber.Ctx) error {
 		})
 	}
 	
-	if users.Role != user.RoleAdmin && users.Role != user.RoleOrganizer {
+	if userRole != "admin" && userRole != "organizer" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "unauthorized to view participants",
 		})

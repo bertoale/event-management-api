@@ -1,6 +1,8 @@
 package event
 
-import "go-event/internal/participant"
+import (
+	"go-event/internal/participant"
+)
 
 // EventRepositoryAdapter mengadaptasi event.Repository ke participant.EventRepository
 type EventRepositoryAdapter struct {

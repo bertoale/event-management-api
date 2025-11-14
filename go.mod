@@ -2,16 +2,18 @@ module go-event
 
 go 1.25.3
 
-require gorm.io/gorm v1.31.1
+require (
+	github.com/go-co-op/gocron v1.37.0
+	github.com/mailjet/mailjet-apiv3-go/v4 v4.0.7
+	gorm.io/gorm v1.31.1
+)
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
-	github.com/go-co-op/gocron v1.37.0 // indirect
 	github.com/go-sql-driver/mysql v1.8.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
-	github.com/mailjet/mailjet-apiv3-go/v4 v4.0.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect

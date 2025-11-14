@@ -1,7 +1,6 @@
 package notification
 
 import (
-	"go-event/internal/user"
 	"time"
 )
 
@@ -19,11 +18,11 @@ type Notification struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	UserID    uint      `json:"user_id"`
 	EventID   *uint     `json:"event_id"`
-	Type      NotifType    `json:"type"` // reminder, update, cancellation
+	Type      NotifType `json:"type"` // reminder, update, cancellation
 	Message   string    `json:"message"`
 	IsRead    bool      `json:"is_read"`
 	SentAt    time.Time `json:"sent_at"`
-	User      user.User `json:"user" gorm:"foreignKey:UserID"`
+	// User      user.User `json:"user" gorm:"foreignKey:UserID"` // REMOVED to avoid import cycle
 }
 
 // 📩 Request structs
@@ -37,11 +36,11 @@ type CreateNotificationRequest struct {
 
 // 📤 Response structs
 type NotificationResponse struct {
-	ID      uint              `json:"id"`
-	Type    NotifType         `json:"type"`
-	Message string            `json:"message"`
-	IsRead  bool              `json:"is_read"`
-	SentAt  time.Time         `json:"sent_at"`
-	User    user.UserResponse `json:"user"`
+	ID      uint      `json:"id"`
+	Type    NotifType `json:"type"`
+	Message string    `json:"message"`
+	IsRead  bool      `json:"is_read"`
+	SentAt  time.Time `json:"sent_at"`
+	EventID *uint     `json:"event_id,omitempty"`
 }
 

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"go-event/internal/event"
 	"go-event/internal/notification/email"
-	"go-event/internal/user"
 	"go-event/pkg/config"
 	"time"
 )
@@ -156,7 +155,6 @@ func (s *service) GetNotificationsByUserID(userID uint) ([]NotificationResponse,
 	if err != nil {
 		return nil, errors.New("failed to retrieve notifications: " + err.Error())
 	}
-
 	var responses []NotificationResponse
 	for _, notif := range notifications {
 		responses = append(responses, NotificationResponse{
@@ -165,12 +163,7 @@ func (s *service) GetNotificationsByUserID(userID uint) ([]NotificationResponse,
 			Message: notif.Message,
 			IsRead:  notif.IsRead,
 			SentAt:  notif.SentAt,
-			User: user.UserResponse{
-				ID:    notif.User.ID,
-				Name:  notif.User.Name,
-				Email: notif.User.Email,
-				Role:  string(notif.User.Role),
-			},
+			EventID: notif.EventID,
 		})
 	}
 

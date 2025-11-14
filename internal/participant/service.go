@@ -4,7 +4,6 @@ import (
 	"errors"
 	"go-event/internal/notification/email"
 	"go-event/internal/user"
-	"go-event/internal/user/repositories"
 	"go-event/pkg/config"
 	"log"
 	"time"
@@ -20,7 +19,7 @@ type service struct {
 	repo         Repository
 	cfg          *config.Config
 	eventRepo    EventRepository
-	userRepo     repositories.UserRepository
+	userRepo     user.Repository
 	emailService email.Service
 }
 
@@ -120,7 +119,7 @@ func (s *service) RegisterParticipant(req *RegisterParticipantRequest) (*Partici
 	
 
 
-func NewService(repo Repository, eventRepo EventRepository, userRepo repositories.UserRepository, emailService email.Service, cfg *config.Config) Service {
+func NewService(repo Repository, eventRepo EventRepository, userRepo user.Repository, emailService email.Service, cfg *config.Config) Service {
 	return &service{
 		repo:         repo,
 		cfg:          cfg,
