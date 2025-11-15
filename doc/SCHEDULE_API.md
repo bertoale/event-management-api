@@ -28,7 +28,7 @@ Berikut adalah dokumentasi endpoint Schedule untuk integrasi dengan Postman:
 
 ## 2. Get All Schedules
 
-- **Endpoint:** `/api/schedule/`
+- **Endpoint:** `/api/event/{id}/schedule`
 - **Method:** GET
 - **Headers:**
   - Authorization: Bearer {jwt-token}
@@ -43,7 +43,7 @@ Berikut adalah dokumentasi endpoint Schedule untuk integrasi dengan Postman:
 
 ## 3. Get Schedule by ID
 
-- **Endpoint:** `/api/schedule/{id}`
+- **Endpoint:** `/api/event/{id}/schedule`
 - **Method:** GET
 - **Headers:**
   - Authorization: Bearer {jwt-token}
