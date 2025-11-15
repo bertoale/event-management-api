@@ -31,6 +31,7 @@ type Service interface {
 	DeleteUser(userID uint) error
 	GetUsersByRole(role string) ([]UserResponse, error)
 	ChangePassword(userID uint, req *ChangePasswordRequest) error
+	UpdateRole(userID uint, req *UpdateRoleRequest) (*UserResponse, error)
 }
 
 type service struct {
@@ -229,6 +230,10 @@ func (s *service) UpdateProfile(userID uint, req *UpdateUserRequest) (*UserRespo
 
 // DeleteUser implements UserService.
 func (s *service) DeleteUser(userID uint) error {
+	if err := s.repo.DeleteParticipantsByUserID(userID); err != nil {
+        return errors.New("failed to delete related participants: " + err.Error())
+    }
+
 	user, err := s.repo.GetByID(userID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -238,7 +243,7 @@ func (s *service) DeleteUser(userID uint) error {
 	}
 
 	if err := s.repo.Delete(user); err != nil {
-		return errors.New("failed to delete user")
+		return errors.New("failed to delete user. " + err.Error())
 	}
 	return nil
 }
@@ -275,7 +280,7 @@ func (s *service) ChangePassword(userID uint, req *ChangePasswordRequest) error 
 
 	// Verify old password
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.OldPassword)); err != nil {
-		return errors.New("invalid old password")
+		return errors.New("invalid old password" + err.Error())
 	}
 
 	// Hash new password
@@ -293,6 +298,32 @@ func (s *service) ChangePassword(userID uint, req *ChangePasswordRequest) error 
 	return nil
 }
 
+
+func (s *service) UpdateRole(userID uint, req *UpdateRoleRequest) (*UserResponse, error){
+	user, err := s.repo.GetByID(userID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("user not found")
+		}
+		return nil, errors.New("failed to get user")
+	}
+
+	if req.Role != "" {
+		user.Role = RoleType(req.Role)
+	}
+
+	if err := s.repo.Update(user); err != nil {
+		return nil, errors.New("failed to update user role: " + err.Error())
+	}
+
+	response := &UserResponse{
+		ID:    user.ID,
+		Name:  user.Name,
+		Email: user.Email,
+		Role:  string(user.Role),
+	}
+	return response, nil
+}
 
 func NewService(authRepo Repository, emailService email.Service, cfg *config.Config) Service {
 	return &service{

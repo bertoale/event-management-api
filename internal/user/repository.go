@@ -14,7 +14,13 @@ type Repository interface {
 	Update(user *User) error
 	Delete(user *User) error
 	FindByRole(role RoleType) ([]*User, error)
+	DeleteParticipantsByUserID(userID uint) error
 }
+
+// Tambahkan model Participant untuk query delete
+// Model minimal agar bisa digunakan untuk delete
+
+
 
 type repository struct {
 	db *gorm.DB
@@ -69,6 +75,11 @@ func (r *repository) FindByRole(role RoleType) ([]*User, error) {
 		return nil, err
 	}
 	return users, nil
+}
+
+// DeleteParticipantsByUserID menghapus semua participant dengan user_id tertentu
+func (r *repository) DeleteParticipantsByUserID(userID uint) error {
+	return r.db.Where("user_id = ?", userID).Delete(&Participant{}).Error
 }
 
 func NewRepository(db *gorm.DB) Repository {

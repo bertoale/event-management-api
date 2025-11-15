@@ -102,7 +102,7 @@ func (s *service) DeleteEvent(userID uint,eventID uint) error {
 
 // GetEventByID implements Service.
 func (s *service) GetEventByID(eventId uint) (*EventResponse, error) {
-	task, err := s.repo.GetByID(eventId)
+	event, err := s.repo.GetByID(eventId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("event not found")
@@ -110,33 +110,33 @@ func (s *service) GetEventByID(eventId uint) (*EventResponse, error) {
 		return nil, errors.New("failed to get event")
 	}
 	response := &EventResponse{
-		ID:          task.ID,
-		Title:       task.Title,
-		Description: task.Description,
-		Location:    task.Location,
-		StartTime:   task.StartTime,
-		EndTime:     task.EndTime,
-		OrganizerID: task.OrganizerID,
+		ID:          event.ID,
+		Title:       event.Title,
+		Description: event.Description,
+		Location:    event.Location,
+		StartTime:   event.StartTime,
+		EndTime:     event.EndTime,
+		OrganizerID: event.OrganizerID,
 	}
 	return response, nil
 }
 
 // GetEventByuserID implements Service.
 func (s *service) GetEventByUserID(userID uint) ([]EventResponse, error) {
-	tasks, err := s.repo.GetAllByUserID(userID)
+	events, err := s.repo.GetAllByUserID(userID)
 	if err != nil {
 		return nil, errors.New("failed to get events")
 	}
 	var responses []EventResponse
-	for _, task := range tasks {
+	for _, event := range events {
 		response := EventResponse{
-			ID:          task.ID,
-			Title:       task.Title,
-			Description: task.Description,
-			Location:    task.Location,
-			StartTime:   task.StartTime,
-			EndTime:     task.EndTime,
-			OrganizerID: task.OrganizerID,
+			ID:          event.ID,
+			Title:       event.Title,
+			Description: event.Description,
+			Location:    event.Location,
+			StartTime:   event.StartTime,
+			EndTime:     event.EndTime,
+			OrganizerID: event.OrganizerID,
 		}
 		responses = append(responses, response)
 	}
@@ -145,42 +145,42 @@ func (s *service) GetEventByUserID(userID uint) ([]EventResponse, error) {
 
 // UpdateEvent implements Service.
 func (s *service) UpdateEvent(userID uint,eventID uint, req *UpdateEventRequest) (*EventResponse, error) {
-	task, err := s.repo.GetByID(eventID)
+	event, err := s.repo.GetByID(eventID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("event not found")
 		}
 		return nil, errors.New("failed to get event")
 	}
-	if task.OrganizerID != userID {
+	if event.OrganizerID != userID {
 		return nil, errors.New("unauthorized to update this event")
 	}
 
 	// Track perubahan untuk notifikasi
 	var changes []string
 	
-	if req.Title != nil && *req.Title != task.Title {
+	if req.Title != nil && *req.Title != event.Title {
 		changes = append(changes, fmt.Sprintf("Judul diubah menjadi: %s", *req.Title))
-		task.Title = *req.Title
+		event.Title = *req.Title
 	}
-	if req.Description != nil && *req.Description != task.Description {
+	if req.Description != nil && *req.Description != event.Description {
 		changes = append(changes, "Deskripsi event telah diperbarui")
-		task.Description = *req.Description
+		event.Description = *req.Description
 	}
-	if req.Location != nil && *req.Location != task.Location {
+	if req.Location != nil && *req.Location != event.Location {
 		changes = append(changes, fmt.Sprintf("Lokasi diubah menjadi: %s", *req.Location))
-		task.Location = *req.Location
+		event.Location = *req.Location
 	}
-	if req.StartTime != nil && !req.StartTime.Equal(task.StartTime) {
+	if req.StartTime != nil && !req.StartTime.Equal(event.StartTime) {
 		changes = append(changes, fmt.Sprintf("Waktu mulai diubah menjadi: %s", req.StartTime.Format("02 Jan 2006 15:04")))
-		task.StartTime = *req.StartTime
+		event.StartTime = *req.StartTime
 	}
-	if req.EndTime != nil && !req.EndTime.Equal(task.EndTime) {
+	if req.EndTime != nil && !req.EndTime.Equal(event.EndTime) {
 		changes = append(changes, fmt.Sprintf("Waktu selesai diubah menjadi: %s", req.EndTime.Format("02 Jan 2006 15:04")))
-		task.EndTime = *req.EndTime
+		event.EndTime = *req.EndTime
 	}
 
-	if err := s.repo.Update(task); err != nil {
+	if err := s.repo.Update(event); err != nil {
 		return nil, errors.New("failed to update event")
 	}
 	
@@ -211,13 +211,13 @@ func (s *service) UpdateEvent(userID uint,eventID uint, req *UpdateEventRequest)
 	}
 	
 	response := &EventResponse{
-		ID:          task.ID,
-		Title:       task.Title,
-		Description: task.Description,
-		Location:    task.Location,
-		StartTime:   task.StartTime,
-		EndTime:     task.EndTime,
-		OrganizerID: task.OrganizerID,
+		ID:          event.ID,
+		Title:       event.Title,
+		Description: event.Description,
+		Location:    event.Location,
+		StartTime:   event.StartTime,
+		EndTime:     event.EndTime,
+		OrganizerID: event.OrganizerID,
 	}
 	return response, nil
 }

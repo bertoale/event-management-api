@@ -12,6 +12,7 @@ func SetupOrganizerEventRoutes(app *fiber.App, ctrl *Controller, cfg *config.Con
 
 	EO.Post("/", middlewares.Authenticate(cfg), middlewares.Authorize("organizer"), ctrl.CreateEvent)
 	EO.Get("/",middlewares.Authenticate(cfg), middlewares.Authorize("organizer"), ctrl.GetAllEventByUserID)
+	EO.Get("/:id",middlewares.Authenticate(cfg), middlewares.Authorize("organizer"), ctrl.GetEventByID)
 	EO.Put(":id",middlewares.Authenticate(cfg), middlewares.Authorize("organizer"), ctrl.UpdateEvent)
 	EO.Delete(":id",middlewares.Authenticate(cfg), middlewares.Authorize("organizer"), ctrl.DeleteEvent)
 }

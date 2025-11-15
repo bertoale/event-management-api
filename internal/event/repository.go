@@ -25,12 +25,12 @@ func (r *repository) Delete(event *Event) error {
 }
 
 // GetAll implements Repository.
-func (r *repository) 	GetAllByUserID(userID uint ) ([]*Event, error){
+func (r *repository) GetAllByUserID(userID uint) ([]*Event, error) {
 	var events []*Event
 	if err := r.db.
-	Where("user_id = ?", userID).
-	Order("created_at desc").
-	Find(&events).Error; err != nil {	
+		Where("organizer_id = ?", userID).
+		Order("created_at desc").
+		Find(&events).Error; err != nil {
 		return nil, err
 	}
 	return events, nil

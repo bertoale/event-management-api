@@ -169,6 +169,29 @@ Berikut adalah dokumentasi endpoint User untuk integrasi dengan Postman:
 }
 ```
 
+## 10. Update Role (Admin only)
+
+- **Endpoint:** `/api/user/role/{id}`
+- **Method:** PUT
+- **Headers:**
+  - Authorization: Bearer {jwt-token}
+- **Request Body:**
+
+```json
+{
+  "role": "string"
+}
+```
+
+- **Response:**
+
+```json
+{
+    "message": "user role updated successfully",
+    "user": {...}
+}
+```
+
 ---
 
 **Catatan:**

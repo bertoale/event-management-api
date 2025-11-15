@@ -21,4 +21,5 @@ func SetupUserRoutes(app *fiber.App, ctrl *Controller, cfg *config.Config) {
 	user.Get("/:id", middlewares.Authenticate(cfg), middlewares.Authorize("admin"), ctrl.GetUserByID)
 	user.Delete("/:id", middlewares.Authenticate(cfg), middlewares.Authorize("admin"), ctrl.DeleteUser)
 	user.Get("/role/:role", middlewares.Authenticate(cfg), middlewares.Authorize("admin"), ctrl.GetUsersByRole)
+	user.Put("/role/:id", middlewares.Authenticate(cfg), middlewares.Authorize("admin"), ctrl.UpdateRole)
 }

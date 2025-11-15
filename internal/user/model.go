@@ -2,10 +2,8 @@ package user
 
 import "time"
 
-// RoleType adalah tipe data khusus untuk Role
 type RoleType string
 
-// Daftar nilai enum yang valid
 const (
 	RoleAdmin       RoleType = "admin"
 	RoleOrganizer   RoleType = "organizer"
@@ -48,10 +46,15 @@ type UpdateUserRequest struct {
 	Email *string `json:"email"`
 }
 
-type ChangePasswordRequest struct {
-	OldPassword string `json:"old_password" validate:"required"`
-	NewPassword string `json:"new_password" validate:"required,min=6"`
+type UpdateRoleRequest struct {
+	Role string `json:"role" validate:"required,oneof=admin organizer participant"`
 }
+
+type ChangePasswordRequest struct {
+    OldPassword string `json:"old_password" form:"old_password" validate:"required"`
+    NewPassword string `json:"new_password" form:"new_password" validate:"required,min=6"`
+}
+
 
 // 📤 Response structs
 type UserResponse struct {
@@ -59,4 +62,9 @@ type UserResponse struct {
 	Name  string `json:"name"`
 	Email string `json:"email"`
 	Role  string `json:"role"`
+}
+
+type Participant struct {
+	ID     uint
+	UserID uint
 }

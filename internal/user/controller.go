@@ -229,3 +229,30 @@ func (ctrl *Controller) ChangePassword(c *fiber.Ctx) error {
 		"message": "password changed successfully",
 	})
 }
+
+func (ctrl *Controller) UpdateRole(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	userID, err := strconv.ParseUint(id, 10, 32)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid user id",
+		})
+	}
+	var req UpdateRoleRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid request body",
+		})
+	}
+	updatedUser, err := ctrl.service.UpdateRole(uint(userID), &req)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "user role updated successfully",
+		"user":    updatedUser,
+	})
+}
