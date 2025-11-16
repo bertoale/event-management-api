@@ -8,7 +8,7 @@ import (
 )
 
 func SetupParticipantRoute(app *fiber.App, ctrl *Controller, cfg *config.Config) {
-	PR := app.Group("/api/participants/")
+	PR := app.Group("/api/participant/")
 
 	PR.Post(":id", middlewares.Authenticate(cfg), ctrl.RegisterParticipant)
 	PR.Delete(":id",middlewares.Authenticate(cfg), ctrl.CancelParticipant)

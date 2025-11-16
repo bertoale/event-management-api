@@ -8,7 +8,7 @@ import (
 )
 
 func SetupOrganizerEventRoutes(app *fiber.App, ctrl *Controller, cfg *config.Config) {
-	EO := app.Group("/api/events")
+	EO := app.Group("/api/event")
 
 	EO.Post("/", middlewares.Authenticate(cfg), middlewares.Authorize("organizer"), ctrl.CreateEvent)
 	EO.Get("/",middlewares.Authenticate(cfg), middlewares.Authorize("organizer"), ctrl.GetAllEventByUserID)

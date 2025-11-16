@@ -9,6 +9,7 @@ type Repository interface {
 	Update(job *ScheduleJob) error
 	Delete(id uint) error
 	FindPending() ([]ScheduleJob, error)
+	GetByID(id uint) (*ScheduleJob, error)
 }
 
 type repository struct {
@@ -50,4 +51,12 @@ func (r *repository) UpdateStatus(id uint, status StatusType) error {
 
 func (r *repository) Delete(id uint) error {
 	return r.db.Delete(&ScheduleJob{}, id).Error
+}
+
+func (r *repository) GetByID(id uint) (*ScheduleJob, error) {
+	var job ScheduleJob
+	if err := r.db.Where("id = ?", id).First(&job).Error; err != nil {
+		return nil, err
+	}
+	return &job, nil
 }

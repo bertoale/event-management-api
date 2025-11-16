@@ -8,9 +8,10 @@ import (
 )
 
 func SetupScheduleRoutes(app *fiber.App, ctrl *Controller, cfg *config.Config) {
-	schedules := app.Group("/api/events")
+	schedules := app.Group("/api/schedule/event")
+	schedules.Post("/:id", middlewares.Authenticate(cfg), middlewares.Authorize("organizer"), ctrl.CreateSchedule)
+	schedules.Get("/:id", middlewares.Authenticate(cfg), middlewares.Authorize("organizer"), ctrl.GetSchedules)
 
-	schedules.Post("/:id/schedules", middlewares.Authenticate(cfg), middlewares.Authorize("organizer"), ctrl.CreateSchedule)
-	schedules.Get("/:id/schedules", middlewares.Authenticate(cfg), middlewares.Authorize("organizer"), ctrl.GetSchedules)
-	schedules.Delete("/schedules/:id", middlewares.Authenticate(cfg), middlewares.Authorize("organizer"), ctrl.DeleteSchedule)
+	schedules2 := app.Group("/api/schedule")
+	schedules2.Delete("/:id", middlewares.Authenticate(cfg), middlewares.Authorize("organizer"), ctrl.DeleteSchedule)
 }

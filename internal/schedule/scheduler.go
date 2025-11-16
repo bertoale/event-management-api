@@ -120,7 +120,7 @@ func (s *Scheduler) sendReminderNotification(job *ScheduleJob) error {
 		req := &notification.CreateNotificationRequest{
 			UserID:  p.UserID,
 			EventID: &job.EventID,
-			Type:    notification.NotifReminder,
+			Type:    string(notification.NotifReminder),
 			Message: message,
 		}
 
@@ -164,7 +164,7 @@ func (s *Scheduler) sendEndEventNotification(job *ScheduleJob) error {
 		req := &notification.CreateNotificationRequest{
 			UserID:  p.UserID,
 			EventID: &job.EventID,
-			Type:    notification.NotifUpdate,
+			Type:    string(notification.NotifUpdate),
 			Message: message,
 		}
 

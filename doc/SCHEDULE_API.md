@@ -4,7 +4,7 @@ Berikut adalah dokumentasi endpoint Schedule untuk integrasi dengan Postman:
 
 ## 1. Create Schedule
 
-- **Endpoint:** `/api/event/{id}/schedule`
+- **Endpoint:** `/api/schedule/event/{eventId}
 - **Method:** POST
 - **Headers:**
   - Authorization: Bearer {jwt-token}
@@ -28,7 +28,7 @@ Berikut adalah dokumentasi endpoint Schedule untuk integrasi dengan Postman:
 
 ## 2. Get All Schedules
 
-- **Endpoint:** `/api/event/{id}/schedule`
+- **Endpoint:** `/api/schedule/event/{eventId}`
 - **Method:** GET
 - **Headers:**
   - Authorization: Bearer {jwt-token}
@@ -41,45 +41,7 @@ Berikut adalah dokumentasi endpoint Schedule untuk integrasi dengan Postman:
 }
 ```
 
-## 3. Get Schedule by ID
-
-- **Endpoint:** `/api/event/{id}/schedule`
-- **Method:** GET
-- **Headers:**
-  - Authorization: Bearer {jwt-token}
-- **Response:**
-
-```json
-{
-  "message": "schedule retrieved successfully",
-  "schedule": { ... }
-}
-```
-
-## 4. Update Schedule
-
-- **Endpoint:** `/api/schedule/{id}`
-- **Method:** PUT
-- **Headers:**
-  - Authorization: Bearer {jwt-token}
-- **Request Body:**
-
-```json
-{
-  "reminder_time": "2025-11-15T08:00:00Z"
-}
-```
-
-- **Response:**
-
-```json
-{
-  "message": "schedule updated successfully",
-  "schedule": { ... }
-}
-```
-
-## 5. Delete Schedule
+## 3. Delete Schedule
 
 - **Endpoint:** `/api/schedule/{id}`
 - **Method:** DELETE

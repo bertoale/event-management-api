@@ -9,7 +9,7 @@ import (
 )
 
 func SetupNotificationRoutes(app *fiber.App, ctrl *Controller, cfg *config.Config) {
-	notif := app.Group("/api/notifications")
+	notif := app.Group("/api/notification")
 
 	// Semua user yang authenticated bisa mengakses notifikasi mereka
 	notif.Get("/", middlewares.Authenticate(cfg), ctrl.GetNotifications)

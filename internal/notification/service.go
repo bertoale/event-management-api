@@ -3,9 +3,11 @@ package notification
 
 import (
 	"errors"
+	"fmt"
 	"go-event/internal/event"
 	"go-event/internal/notification/email"
 	"go-event/pkg/config"
+	"strings"
 	"time"
 )
 
@@ -28,47 +30,50 @@ type service struct {
 
 // CreateNotification implements Service.
 func (s *service) CreateNotification(req *CreateNotificationRequest) (*NotificationResponse, error) {
-	// Validasi request
-	if req.Message == "" {
+	// ================================
+	// VALIDASI DIPINDAHKAN KE SERVICE
+	// ================================
+
+	// user id wajib
+	if req.UserID == 0 {
+		return nil, errors.New("user_id is required")
+	}
+
+	// message wajib
+	if strings.TrimSpace(req.Message) == "" {
 		return nil, errors.New("message is required")
 	}
 
-	// Validasi tipe notifikasi
-	validTypes := []NotifType{NotifReminder, NotifUpdate, NotifCancellation}
-	isValid := false
-	for _, t := range validTypes {
-		if req.Type == t {
-			isValid = true
-			break
-		}
-	}
-
-	if !isValid {
+	// type wajib dan harus valid
+	notifType, ok := ParseNotifType(req.Type)
+	if !ok {
 		return nil, errors.New("invalid notification type")
 	}
 
+	// Buat model
 	notification := &Notification{
 		UserID:  req.UserID,
 		EventID: req.EventID,
-		Type:    req.Type,
+		Type:    notifType,
 		Message: req.Message,
 		IsRead:  false,
 		SentAt:  time.Now(),
 	}
 
+	// Simpan ke database
 	if err := s.repo.Create(notification); err != nil {
-		return nil, errors.New("failed to create notification: " + err.Error())
+		return nil, fmt.Errorf("failed to create notification: %w", err)
 	}
 
-	response := &NotificationResponse{
+	// Response ke controller
+	return &NotificationResponse{
 		ID:      notification.ID,
 		Type:    notification.Type,
 		Message: notification.Message,
 		IsRead:  notification.IsRead,
 		SentAt:  notification.SentAt,
-	}
-
-	return response, nil
+		EventID: notification.EventID,
+	}, nil
 }
 
 // CreateNotificationWithEmail implements Service.
@@ -82,7 +87,7 @@ func (s *service) CreateNotificationWithEmail(req *CreateNotificationRequest, us
 	// Kirim email berdasarkan tipe notifikasi (async, tidak block jika gagal)
 	go func() {
 		var emailErr error
-		
+
 		// Ambil detail event jika ada
 		var eventTitle string
 		var eventDate string
@@ -100,7 +105,8 @@ func (s *service) CreateNotificationWithEmail(req *CreateNotificationRequest, us
 			eventDate = "segera"
 		}
 
-		switch req.Type {
+		notifType, _ := ParseNotifType(req.Type)
+		switch notifType {
 		case NotifReminder:
 			emailErr = s.emailService.SendReminderEmail(userEmail, userName, eventTitle, eventDate)
 		case NotifCancellation:
@@ -123,7 +129,7 @@ func (s *service) SendNotificationWithEmail(userID uint, eventID uint, notifType
 	req := &CreateNotificationRequest{
 		UserID:  userID,
 		EventID: &eventID,
-		Type:    notifType,
+		Type:    string(notifType),
 		Message: message,
 	}
 	

@@ -4,7 +4,6 @@ package notification
 import (
 	"go-event/pkg/config"
 	"strconv"
-	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -23,25 +22,11 @@ func NewController(service Service, cfg *config.Config) *Controller {
 
 func (ctrl *Controller) CreateNotification(c *fiber.Ctx) error {
 	var req CreateNotificationRequest
+
+	// Bisa parse JSON & x-www-form-urlencoded
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "invalid request body",
-		})
-	}
-
-	// Validasi tipe notifikasi
-	validTypes := []string{string(NotifReminder), string(NotifUpdate), string(NotifCancellation)}
-	isValid := false
-	for _, t := range validTypes {
-		if strings.ToLower(string(req.Type)) == t {
-			isValid = true
-			break
-		}
-	}
-
-	if !isValid {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "invalid notification type. must be 'reminder', 'update', or 'cancellation'",
+			"message": "invalid request body",
 		})
 	}
 

@@ -91,26 +91,13 @@ func (s *service) GetSchedulesByEventID(eventID uint) ([]ScheduleResponse, error
 // DeleteSchedule implements Service.
 func (s *service) DeleteSchedule(scheduleID uint, userID uint) error {
 	// Cari schedule berdasarkan ID
-	jobs, err := s.repo.FindByEventID(scheduleID)
-	if err != nil {
-		return errors.New("failed to find schedule")
-	}
-
-	// Cek apakah schedule ada
-	var targetJob *ScheduleJob
-	for i := range jobs {
-		if jobs[i].ID == scheduleID {
-			targetJob = &jobs[i]
-			break
-		}
-	}
-
-	if targetJob == nil {
+	job, err := s.repo.GetByID(scheduleID)
+	if err != nil || job == nil {
 		return errors.New("schedule not found")
 	}
 
 	// Validasi user adalah organizer dari event tersebut
-	events, err := s.eventRepo.GetByID(targetJob.EventID)
+	events, err := s.eventRepo.GetByID(job.EventID)
 	if err != nil {
 		return errors.New("event not found")
 	}
